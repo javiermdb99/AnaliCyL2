@@ -21,14 +21,22 @@ escanos$Provincia <- gsub('Ó', 'O', as.character(escanos$Provincia))
 names(escanos) <- gsub('X', '', as.character(names(escanos)))
 colores <- read.csv("colores.csv", header = T)
 Partido <- c(
+  "PTE",
   "IU",
   "PCE",
   "Podemos",
+  "PACMA",
   "PNC",
-  "TC",
+  "PCAS",
   "PSOE",
   "PREPAL",
   "UPL",
+  "UNLE",
+  "PDB",
+  "PB",
+  "LV",
+  "APB",
+  "URCL",
   "SY",
   "SI",
   "UPyD",
@@ -36,11 +44,15 @@ Partido <- c(
   "CCD",
   "CI-CCD",
   "UPSa",
+  "LVE",
   "Cs",
+  "MASS",
   "CDS",
   "PDP",
   "PDL",
   "PPSO",
+  "DRCL",
+  "AIAV",
   "PP",
   "AP",
   "XAV",
@@ -78,7 +90,9 @@ clean <- function(df) {
   df$Partido <-
     as.factor(gsub('.*PNC.*', 'PNC', as.character(df$Partido), ignore.case = T))
   df$Partido <-
-    as.factor(gsub('.*AP.*', 'AP', as.character(df$Partido)))
+    as.factor(gsub('AP-.*', 'AP', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('AP', 'AP', as.character(df$Partido)))
   df$Partido <-
     as.factor(gsub('.*PSOE.*', 'PSOE', as.character(df$Partido)))
   df$Partido <-
@@ -86,9 +100,18 @@ clean <- function(df) {
   df$Partido <-
     as.factor(gsub('.*PCE.*', 'PCE', as.character(df$Partido)))
   df$Partido <-
-    as.factor(gsub('.*TC.*', 'TC', as.character(df$Partido)))
+    as.factor(gsub('.*TC.*', 'PCAS', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('.*PCAL.*', 'PCAS', as.character(df$Partido)))
   df$Partido <-
     as.factor(gsub('.*UPSA.*', 'UPSa', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('.*PTE.*', 'PTE', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('.*URCL.*', 'URCL', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('.*CDS.*', 'CDS', as.character(df$Partido)))
+  
   
   #mucho ojito con esto que puede cargarse algún partido
   
