@@ -137,18 +137,47 @@ read_and_clean <- function(datos) {
   return(datos)
 }
 
-#### VOTOS EN BLANCO???
+# Se calculan los blancos y nulos por municipio y se añaden como unos partidos más
+# Devuelve un dataframe con la Provincia, Municipio, Partido (con blancos y nulos) y Votos
+separacion_bn <- function(datos){
+  muni <-
+    datos %>% group_by(Provincia, Municipio, Partido) %>% summarise(VotosMuni = sum(Nº.Votos))
+  blanconulo <-
+    datos %>% select(Provincia,
+                     Municipio,
+                     Distrito,
+                     Sección,
+                     Mesa,
+                     Votos.Blanco,
+                     Votos.Nulos) %>% distinct() %>% group_by(Provincia, Municipio) %>%
+    summarise("Votos en blanco" = sum(Votos.Blanco),
+              "Votos nulos" = sum(Votos.Nulos)) %>%
+    gather(key = "Partido",
+           value = "VotosMuni",
+           "Votos en blanco",
+           "Votos nulos") %>% arrange(Provincia, Municipio) # esto que se aparte, mantenerlo SIEMPRE
+  bn <-
+    muni %>% bind_rows(blanconulo) %>% arrange(Provincia, Municipio) %>% ungroup() # va con nulos.
+  
+  return(bn)
+}
+
 # Obtiene los resultados para cada partido y elimina aquellos que no llegan al
 # umbral especificado
 resultados_totales <- function(datos) {
   # se calculan los votos a cada partido en cada provincia
+  # prov <-
+  #   datos %>% group_by(Provincia, Partido) %>% summarise(Votos = sum(Nº.Votos)) %>%
+  #   group_by(Provincia) %>% mutate(Porc = Votos / sum(Votos) * 100) %>%
+  #   group_by(Partido) %>% mutate(VotosCCAA = sum(Votos)) %>% ungroup() %>%
+  #   mutate(PorcCCAA = VotosCCAA / sum(Votos) * 100)
   
-  browser()
-  prov <-
-    datos %>% group_by(Provincia, Partido) %>% summarise(Votos = sum(Nº.Votos)) %>%
-    group_by(Provincia) %>% mutate(Porc = Votos / sum(Votos) * 100) %>%
-    group_by(Partido) %>% mutate(VotosCCAA = sum(Votos)) %>% ungroup() %>%
-    mutate(PorcCCAA = VotosCCAA / sum(Votos) * 100) #%>% filter(Porc > min_threshold)
+  prov <- datos %>% filter(Partido != "Votos nulos") %>% 
+    group_by(Provincia, Municipio) %>% mutate(PorcMuni = VotosMuni/sum(VotosMuni)*100) %>% 
+    group_by(Provincia, Partido) %>% mutate(Votos = sum(VotosMuni)) %>% 
+    ungroup(Partido) %>% mutate(Porc = Votos/sum(VotosMuni) * 100) %>% 
+    group_by(Partido) %>% mutate(VotosCCAA = sum(VotosMuni)) %>% 
+    ungroup() %>% mutate(PorcCCAA = VotosCCAA/sum(VotosMuni)*100)
   # OJO CON EL UMBRAL AQUÍ
   return(prov)
 }
@@ -163,7 +192,8 @@ resultados_provincia <- function(datos, provincia, min_threshold = 3) {
   } else {
     reparto <- datos %>% filter(Provincia == provincia, Porc > min_threshold)
   }
-  
+  reparto <- reparto %>% select(Partido, Votos, Porc) %>% distinct() # como sale por municipio,
+  # hay que elegir únicamente una vez
   return(reparto)
 }
 
@@ -203,6 +233,7 @@ asignar_escanos <- function(matriz_reparto) {
 asignar_cuota_hare <-
   function(datos, anio, provincia, escanos_provincia) {
     cuota <- (datos %>% select(Votos) %>% sum()) / escanos_provincia
+    datos <- datos %>% filter(Partido != "Votos en blanco") #aquí los votos en blanco afectan la cuota
     escanos <-
       datos %>% mutate(Cociente = Votos %/% cuota, Resto = Votos %% cuota)
     numero_asignados <- escanos %>% select(Cociente) %>% sum()
@@ -254,7 +285,7 @@ parlamento <-
       parl_rows = seats_rows,
       party_seats = datos$Escanos
     )
-    
+
     parl_data$Color <-
       colores$Color[match(parl_data$Partido, colores$Partido)]
     parl_data$Color[is.na(parl_data$Color)] <- as.character(1:100)
@@ -272,6 +303,7 @@ parlamento <-
   }
 
 grafico_votos <- function(datos, provincia = F) {
+
   if (provincia) {
     datos <- datos %>% rename(Porcentaje = Porc)
     
@@ -303,7 +335,9 @@ shinyServer(function(input, output) {
   eleccion <-
     reactive(paste("./resultados/", anio(), ".csv", sep = ""))
   datos <- reactive(read_and_clean(eleccion()))
-  res_partidos <- reactive(resultados_totales(datos()))
+  res_totales <- reactive(separacion_bn(datos()))
+  res_partidos <- reactive(resultados_totales(res_totales()))
+  
   ##################################################################################
   ##################################################################################
   ###############################ANÁLISIS ELECTORAL###############################
