@@ -143,6 +143,7 @@ read_and_clean <- function(datos) {
 resultados_totales <- function(datos) {
   # se calculan los votos a cada partido en cada provincia
   
+  browser()
   prov <-
     datos %>% group_by(Provincia, Partido) %>% summarise(Votos = sum(Nº.Votos)) %>%
     group_by(Provincia) %>% mutate(Porc = Votos / sum(Votos) * 100) %>%
@@ -277,7 +278,7 @@ grafico_votos <- function(datos, provincia = F) {
   } else {
     datos <-
       datos %>% group_by(Partido) %>% select(Partido, PorcCCAA, Partido) %>%
-      distinct()
+      distinct() %>% filter(PorcCCAA > 0.5) # se quitan partidos pequeños
     datos <- datos %>% rename(Porcentaje = PorcCCAA)
   }
   datos$Color <-
@@ -302,12 +303,12 @@ shinyServer(function(input, output) {
   eleccion <-
     reactive(paste("./resultados/", anio(), ".csv", sep = ""))
   datos <- reactive(read_and_clean(eleccion()))
+  res_partidos <- reactive(resultados_totales(datos()))
   ##################################################################################
   ##################################################################################
   ###############################ANÁLISIS ELECTORAL###############################
   ##################################################################################
   ##################################################################################
-  res_partidos <- reactive(resultados_totales(datos()))
   
   resultados_avila <-
     reactive(resultados_provincia(res_partidos(), "avila"))
@@ -347,17 +348,6 @@ shinyServer(function(input, output) {
   reparto_zamora <-
     reactive(obtener_reparto(resultados_zamora(), as.integer(anio()), "zamora"))
   
-  # escanos_avila <- reactive(asignar_escanos(reparto_avila()))
-  # escanos_burgos <- reactive(asignar_escanos(reparto_burgos()))
-  # escanos_leon <- reactive(asignar_escanos(reparto_leon()))
-  # escanos_palencia <- reactive(asignar_escanos(reparto_palencia()))
-  # escanos_salamanca <-
-  #   reactive(asignar_escanos(reparto_salamanca()))
-  # escanos_segovia <- reactive(asignar_escanos(reparto_segovia()))
-  # escanos_soria <- reactive(asignar_escanos(reparto_soria()))
-  # escanos_valladolid <-
-  #   reactive(asignar_escanos(reparto_valladolid()))
-  # escanos_zamora <- reactive(asignar_escanos(reparto_zamora()))
   reparto_cyl_temp <- reactive(
     cbind(
       reparto_avila(),
@@ -424,32 +414,28 @@ shinyServer(function(input, output) {
   ##################################################################################
   ##################################################################################
   
-  #anio <- reactive(input$eleccion_prov)
-  # eleccion <-
-  #   reactive(paste("./resultados/", anio(), ".csv", sep = ""))
-  # datos <- reactive(read_and_clean(eleccion()))
   metodo_prov <- reactive(input$metodo_prov)
   barrera_prov <- reactive(input$barrera_prov)
-  res_partidos_prov <- reactive(resultados_totales(datos()))
+  #res_partidos <- reactive(resultados_totales(datos()))
   
   resultados_avila_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "avila", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "avila", barrera_prov()))
   resultados_burgos_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "burgos", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "burgos", barrera_prov()))
   resultados_leon_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "leon", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "leon", barrera_prov()))
   resultados_palencia_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "palencia", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "palencia", barrera_prov()))
   resultados_salamanca_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "salamanca", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "salamanca", barrera_prov()))
   resultados_segovia_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "segovia", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "segovia", barrera_prov()))
   resultados_soria_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "soria", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "soria", barrera_prov()))
   resultados_valladolid_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "valladolid", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "valladolid", barrera_prov()))
   resultados_zamora_prov <-
-    reactive(resultados_provincia(res_partidos_prov(), "zamora", barrera_prov()))
+    reactive(resultados_provincia(res_partidos(), "zamora", barrera_prov()))
   
   
   reparto_avila_prov <-
@@ -569,15 +555,11 @@ shinyServer(function(input, output) {
   ##################################################################################
   ##################################################################################
   
-  # anio <- reactive(input$eleccion_aut)
-  # eleccion <-
-  #   reactive(paste("./resultados/", anio(), ".csv", sep = ""))
-  # datos <- reactive(read_and_clean(eleccion()))
   metodo_aut <- reactive(input$metodo_aut)
   barrera_aut <- reactive(input$barrera_aut)
-  res_partidos_aut <- reactive(resultados_totales(datos()))
+  #res_partidos <- reactive(resultados_totales(datos()))
   
-  resultados_cyl_aut <- reactive(resultados_provincia(res_partidos_aut(), "cyl", 
+  resultados_cyl_aut <- reactive(resultados_provincia(res_partidos(), "cyl", 
                                                       min_threshold = barrera_aut()))
   reparto_cyl_aut <- reactive(obtener_reparto(resultados_cyl_aut(), anio(), "cyl", method = metodo_aut()))
   
