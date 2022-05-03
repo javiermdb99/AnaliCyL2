@@ -1,11 +1,3 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 library(shiny)
 library(plotly)
 
@@ -25,13 +17,28 @@ shinyUI(fluidPage(
                            tabPanel("Análisis a nivel autonómico",
                                     fluidRow(
                                       column(5, plotlyOutput("barras_an_autonomico")),
-                                      column(7, plotlyOutput("cortes_analisis")))),
+                                      column(7, plotlyOutput("cortes_analisis"))
+                                      ),
+                                    fluidRow(
+                                      column(1),
+                                      column(2, tableOutput("tabla_cyl")),
+                                      column(1),
+                                      column(8, plotlyOutput("mapa_cyl")),
+                                    )
+                                    ),
                            tabPanel("Análisis a nivel provincial", 
                                     selectInput("provincia", "¿Qué provincia?", provincias, selected="Valladolid"),
                                     #textOutput("prueba"),
                                     fluidRow(
                                       column(5, plotlyOutput("barras_an_provincial")),
-                                      column(7, plotlyOutput("procuradores_provin"))))
+                                      column(7, plotlyOutput("procuradores_provin"))),
+                                    fluidRow(
+                                      column(1),
+                                      column(2, tableOutput("tabla_prov")),
+                                      column(1),
+                                      column(8, plotlyOutput("mapa_prov")),
+                                    )
+                                    )
                            ),
                          ),
                 tabPanel("Sistema de circunscripciones provinciales", id = "prov",

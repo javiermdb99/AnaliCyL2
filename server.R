@@ -13,6 +13,7 @@ library(dplyr)
 library(ggparliament)
 library(plotly)
 library(forcats)
+library(sf)
 
 options(digits = 2)
 
@@ -162,15 +163,9 @@ separacion_bn <- function(datos){
   return(bn)
 }
 
-# Obtiene los resultados para cada partido y elimina aquellos que no llegan al
-# umbral especificado
+# Obtiene los resultados para cada partido
 resultados_totales <- function(datos) {
   # se calculan los votos a cada partido en cada provincia
-  # prov <-
-  #   datos %>% group_by(Provincia, Partido) %>% summarise(Votos = sum(Nº.Votos)) %>%
-  #   group_by(Provincia) %>% mutate(Porc = Votos / sum(Votos) * 100) %>%
-  #   group_by(Partido) %>% mutate(VotosCCAA = sum(Votos)) %>% ungroup() %>%
-  #   mutate(PorcCCAA = VotosCCAA / sum(Votos) * 100)
   
   prov <- datos %>% filter(Partido != "Votos nulos") %>% 
     group_by(Provincia, Municipio) %>% mutate(PorcMuni = VotosMuni/sum(VotosMuni)*100) %>% 
@@ -179,7 +174,38 @@ resultados_totales <- function(datos) {
     group_by(Partido) %>% mutate(VotosCCAA = sum(VotosMuni)) %>% 
     ungroup() %>% mutate(PorcCCAA = VotosCCAA/sum(VotosMuni)*100)
   # OJO CON EL UMBRAL AQUÍ
+  
   return(prov)
+}
+
+# Obtiene los datos totales de los votos y los transforma en una tabla según
+# la comunidad o la provincia, con los votos en blanco y los nulos también,
+# en total. El porcentaje se calcula respecto a los votos emitidos, incluido nulos
+
+tabla_informacion <- function(datos, provincia){
+  datos_votos <- datos %>% 
+    group_by(Provincia, Municipio) %>% mutate(PorcMuni = VotosMuni/sum(VotosMuni)*100) %>% 
+    group_by(Provincia, Partido) %>% mutate(Votos = sum(VotosMuni)) %>% 
+    group_by(Partido) %>% mutate(VotosCCAA = sum(VotosMuni))
+  
+  if(provincia == "cyl"){
+    votos <- datos_votos %>% group_by(Partido) %>% 
+      select(Partido, VotosCCAA) %>% distinct() %>% ungroup() %>%
+      rename(Votos = VotosCCAA)
+  } else {
+    provincia <- provincia %>% gsub("á", "a", ., ignore.case = T) %>% 
+      gsub("ó", "o", ., ignore.case = T)
+    votos <- datos_votos %>% filter(Provincia == toupper(provincia)) %>% 
+      select(Partido, Votos) %>% distinct() %>% ungroup()
+  }
+  
+  bn <- votos %>% filter(Partido == "Votos en blanco" | Partido == "Votos nulos")
+  votos <- votos %>% filter(Partido != "Votos en blanco" & Partido != "Votos nulos") %>% 
+    arrange(desc(Votos))
+  
+  votos <- votos %>% bind_rows(bn) %>% mutate(Porcentaje = Votos/sum(Votos)*100)
+  
+  return(votos)
 }
 
 # Obtener los datos de cada provincia
@@ -256,6 +282,7 @@ asignar_cuota_hare <-
 
 obtener_reparto <- function(datos, anio, provincia, method = "D'Hont"){
   provincia <- toupper(provincia)
+  datos <- datos %>% filter(Partido != "Votos en blanco")
   
   if(provincia == "CYL"){
     escanos_provincia <- as.integer(escanos %>% select(as.character(anio)) %>% 
@@ -329,6 +356,27 @@ grafico_votos <- function(datos, provincia = F) {
   return(grafico_barras)
 }
 
+mapa_masvotado <- function(datos, datos_geo){
+  
+  masvotado_provincia <- datos %>% group_by(Provincia) %>% 
+    filter(Votos == max(Votos)) %>% select(Provincia, Partido) %>% distinct()
+  
+  masvotado_provincia$Colores <- colores$Color[match(masvotado_provincia$Partido,
+                                                     colores$Partido)] 
+  # Cambiar de Colores a Color para poder usar join
+  
+  datos_mapa <- datos_geo %>% left_join(masvotado_provincia, by = "Provincia") %>% 
+    mutate(Texto = paste("Provincia:", Provincia, "\nPartido más votado:", Partido))
+  
+  mapa <- ggplot(datos_mapa, aes(label = Partido))+
+    geom_sf(fill = datos_mapa$Colores)+
+    theme_minimal()
+  
+  mapa <- ggplotly(mapa) %>%  style(hoveron = "fill") # PARA QUE SALGA DENTRO Y NO EN EL BORDE
+  
+  return(mapa)
+}
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   anio <- reactive(input$eleccion)
@@ -337,6 +385,9 @@ shinyServer(function(input, output) {
   datos <- reactive(read_and_clean(eleccion()))
   res_totales <- reactive(separacion_bn(datos()))
   res_partidos <- reactive(resultados_totales(res_totales()))
+  geo_provi <- read_sf("./provincias/au.prov_cyl_recintos.shp") %>% rename(Provincia = nombre)
+  geo_provi$Provincia <- geo_provi$Provincia %>% 
+    toupper() %>% gsub('Á', 'A', .) %>% gsub('Ó', 'O', .)
   
   ##################################################################################
   ##################################################################################
@@ -434,9 +485,14 @@ shinyServer(function(input, output) {
     "Valladolid" = grafico_votos(resultados_valladolid(), provincia = T),
     "Zamora" = grafico_votos(resultados_zamora(), provincia = T)
   ))
+
+  output$mapa_cyl <- renderPlotly(mapa_masvotado(res_partidos(), geo_provi))
+  output$tabla_cyl <- renderTable(tabla_informacion(res_totales(), "cyl"))
+  
   output$procuradores_provin <-
     renderPlotly(parlamento_provin_an())
   output$barras_an_provincial <- renderPlotly(barras_provin_an())
+  output$tabla_prov <- renderTable(tabla_informacion(res_totales(), input$provincia))
   
   
   
