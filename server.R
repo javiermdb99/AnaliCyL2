@@ -20,45 +20,9 @@ options(digits = 2)
 escanos <- read.csv("./resultados/escanos.csv", header = T)
 escanos$Provincia <- gsub('Ó', 'O', as.character(escanos$Provincia))
 names(escanos) <- gsub('X', '', as.character(names(escanos)))
-colores <- read.csv("colores.csv", header = T)
-Partido <- c(
-  "PTE",
-  "IU",
-  "PCE",
-  "Podemos",
-  "PACMA",
-  "PNC",
-  "PCAS",
-  "PSOE",
-  "PREPAL",
-  "UPL",
-  "UNLE",
-  "PDB",
-  "PB",
-  "LV",
-  "APB",
-  "URCL",
-  "SY",
-  "SI",
-  "UPyD",
-  "CI",
-  "CCD",
-  "CI-CCD",
-  "UPSa",
-  "LVE",
-  "Cs",
-  "MASS",
-  "CDS",
-  "PDP",
-  "PDL",
-  "PPSO",
-  "DRCL",
-  "AIAV",
-  "PP",
-  "AP",
-  "XAV",
-  "VOX"
-)
+colores <- read.csv("colores.csv")
+Partido <- colores %>% pull(Partido)
+colores$Color[colores$Color==""] <- 1:100
 
 # Esta función limpia de acentos el dataframe que se ha pasado como argumento,
 # así como normaliza los nombres de los partidos a los nombres más conocidos a nivel
@@ -91,6 +55,8 @@ clean <- function(df) {
   df$Partido <-
     as.factor(gsub('.*PNC.*', 'PNC', as.character(df$Partido), ignore.case = T))
   df$Partido <-
+    as.factor(gsub('APB.*', 'APB', as.character(df$Partido))) # cuidado
+  df$Partido <-
     as.factor(gsub('AP-.*', 'AP', as.character(df$Partido)))
   df$Partido <-
     as.factor(gsub('AP', 'AP', as.character(df$Partido)))
@@ -112,13 +78,7 @@ clean <- function(df) {
     as.factor(gsub('.*URCL.*', 'URCL', as.character(df$Partido)))
   df$Partido <-
     as.factor(gsub('.*CDS.*', 'CDS', as.character(df$Partido)))
-  
-  
-  #mucho ojito con esto que puede cargarse algún partido
-  
-  # df$Partido <- factor(df$Partido, levels = c("IU", "Podemos", "PNC", "PSOE", "UPL",
-  #                                             "SY", "Cs", "CDS", "PDP", "PDL",
-  #                                             "PP", "AP","XAV", "VOX"))
+
   return(df)
 }
 
@@ -315,7 +275,7 @@ parlamento <-
 
     parl_data$Color <-
       colores$Color[match(parl_data$Partido, colores$Partido)]
-    parl_data$Color[is.na(parl_data$Color)] <- as.character(1:100)
+    # parl_data$Color[is.na(parl_data$Color)] <- as.character(1:100)
     parlamento <-
       ggplot(parl_data, aes(x, y, colour = Partido, label = Escanos)) +
       geom_parliament_seats(size = seat_size) +
@@ -342,7 +302,7 @@ grafico_votos <- function(datos, provincia = F) {
   }
   datos$Color <-
     colores$Color[match(datos$Partido, colores$Partido)]
-  datos$Color[is.na(datos$Color)] <- as.character(1:100)
+  # datos$Color[is.na(datos$Color)] <- as.character(1:100)
   datos$Partido <-
     fct_rev(fct_reorder(datos$Partido, datos$Porcentaje))
   
