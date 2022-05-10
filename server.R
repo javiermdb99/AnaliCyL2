@@ -24,6 +24,14 @@ colores <- read.csv("colores.csv")
 Partido <- colores %>% pull(Partido)
 colores$Color[colores$Color==""] <- 1:100
 
+datos_geo <- read_sf("./provincias/au.prov_cyl_recintos.shp") %>% rename(Provincia = nombre)
+datos_geo$Provincia <- datos_geo$Provincia %>% 
+  toupper() %>% gsub('Á', 'A', .) %>% gsub('Ó', 'O', .)
+muni_geo <- read_sf("./municipios/au.muni_cyl_recintos.shp") %>% rename(Municipio = nombre)
+muni_geo$Municipio <- muni_geo$Municipio %>% toupper() %>% 
+  gsub('Á', 'A', .) %>% gsub('É', 'E', .) %>% gsub('Í', 'I', .) %>% 
+  gsub('Ó', 'O', .) %>% gsub('Ú', 'U', .)
+
 # Esta función limpia de acentos el dataframe que se ha pasado como argumento,
 # así como normaliza los nombres de los partidos a los nombres más conocidos a nivel
 # estatal y autonómico
@@ -43,6 +51,13 @@ clean <- function(df) {
   df$Municipio <- gsub('Ó', 'O', as.character(df$Municipio))
   df$Municipio <- gsub('Ú', 'U', as.character(df$Municipio))
   
+  
+  df$Partido <-
+    as.factor(gsub('ñ', 'n', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub('Ñ', 'N', as.character(df$Partido)))
+  df$Partido <-
+    as.factor(gsub(' ', '', as.character(df$Partido)))
   df$Partido <-
     as.factor(gsub(
       '.*PODEMOS.*',
@@ -316,17 +331,38 @@ grafico_votos <- function(datos, provincia = F) {
   return(grafico_barras)
 }
 
-mapa_masvotado <- function(datos, datos_geo){
+mapa_masvotado <- function(datos, provincia = "cyl"){
   
-  masvotado_provincia <- datos %>% group_by(Provincia) %>% 
-    filter(Votos == max(Votos)) %>% select(Provincia, Partido) %>% distinct()
-  
-  masvotado_provincia$Colores <- colores$Color[match(masvotado_provincia$Partido,
-                                                     colores$Partido)] 
-  # Cambiar de Colores a Color para poder usar join
-  
-  datos_mapa <- datos_geo %>% left_join(masvotado_provincia, by = "Provincia") %>% 
-    mutate(Texto = paste("Provincia:", Provincia, "\nPartido más votado:", Partido))
+  if (provincia == "cyl") {
+    masvotado_provincia <- datos %>% group_by(Provincia) %>%
+      filter(Votos == max(Votos)) %>% select(Provincia, Partido) %>% distinct()
+    
+    masvotado_provincia$Colores <-
+      colores$Color[match(masvotado_provincia$Partido,
+                          colores$Partido)]
+    # Cambiar de Colores a Color para poder usar join
+    
+    datos_mapa <-
+      datos_geo %>% left_join(masvotado_provincia, by = "Provincia") %>%
+      mutate(Texto = paste("Provincia:", Provincia, "\nPartido más votado:", Partido))
+  } else {
+    provincia <- provincia %>% gsub("á", "a", ., ignore.case = T) %>% 
+      gsub("ó", "o", ., ignore.case = T)
+    # Se obtiene el más votado en cada municipio y se unifican los casos en los que se repiten
+    # municipios
+    masvotado_muni <- datos %>% filter(Provincia==toupper(provincia)) %>% group_by(Municipio) %>% 
+      filter(VotosMuni == max(VotosMuni)) %>% select(Provincia, Municipio, Partido) %>% 
+      group_by(Municipio) %>% mutate(Veces = n()) %>% ungroup()
+    masvotado_muni$Partido[masvotado_muni$Veces>1] = "Empate"
+    masvotado_muni <- masvotado_muni %>% distinct() %>% select(-Veces)
+    
+    masvotado_muni$Colores <- colores$Color[match(masvotado_muni$Partido,
+                                                  colores$Partido)]
+    # Cambiar de Colores a Color para poder usar join
+    
+    datos_mapa <- muni_geo %>% inner_join(masvotado_muni, by = "Municipio") %>% 
+      mutate(Texto = paste("Municipio:", Municipio, "\nPartido más votado:", Partido))
+  }
   
   mapa <- ggplot(datos_mapa, aes(label = Partido))+
     geom_sf(fill = datos_mapa$Colores)+
@@ -337,6 +373,7 @@ mapa_masvotado <- function(datos, datos_geo){
   return(mapa)
 }
 
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   anio <- reactive(input$eleccion)
@@ -345,9 +382,6 @@ shinyServer(function(input, output) {
   datos <- reactive(read_and_clean(eleccion()))
   res_totales <- reactive(separacion_bn(datos()))
   res_partidos <- reactive(resultados_totales(res_totales()))
-  geo_provi <- read_sf("./provincias/au.prov_cyl_recintos.shp") %>% rename(Provincia = nombre)
-  geo_provi$Provincia <- geo_provi$Provincia %>% 
-    toupper() %>% gsub('Á', 'A', .) %>% gsub('Ó', 'O', .)
   
   ##################################################################################
   ##################################################################################
@@ -446,12 +480,13 @@ shinyServer(function(input, output) {
     "Zamora" = grafico_votos(resultados_zamora(), provincia = T)
   ))
 
-  output$mapa_cyl <- renderPlotly(mapa_masvotado(res_partidos(), geo_provi))
+  output$mapa_cyl <- renderPlotly(mapa_masvotado(res_partidos()))
   output$tabla_cyl <- renderTable(tabla_informacion(res_totales(), "cyl"))
   
   output$procuradores_provin <-
     renderPlotly(parlamento_provin_an())
   output$barras_an_provincial <- renderPlotly(barras_provin_an())
+  output$mapa_prov <- renderPlotly(mapa_masvotado(res_partidos(), input$provincia))
   output$tabla_prov <- renderTable(tabla_informacion(res_totales(), input$provincia))
   
   

@@ -10,7 +10,7 @@ shinyUI(fluidPage(
 
     # Application title
     titlePanel("Estudio sobre las elecciones a las Cortes de Castilla y León"),
-    selectInput("eleccion", "¿Qué elecciones quieres analizar?", elecciones, selected = "2019"),
+    selectInput("eleccion", "¿Qué elecciones quieres analizar?", elecciones, selected = "2022"),
     tabsetPanel(
                 tabPanel("Análisis de las elecciones", id="analisis",
                          tabsetPanel(
