@@ -9,12 +9,12 @@ metodos <- c("D'Hont","Sainte-Lagüe", "Cuota Hare")
 shinyUI(fluidPage(
 
     # Application title
-    titlePanel("Estudio sobre las elecciones a las Cortes de Castilla y León"),
-    selectInput("eleccion", "¿Qué elecciones quieres analizar?", elecciones, selected = "2022"),
+    titlePanel("AnaliCyL"),
+    selectInput("eleccion", "Convocatoria:", elecciones, selected = "2022"),
     tabsetPanel(
-                tabPanel("Análisis de las elecciones", id="analisis",
+                tabPanel("Resultados electorales", id="analisis",
                          tabsetPanel(
-                           tabPanel("Análisis a nivel autonómico",
+                           tabPanel("Resultados a nivel autonómico",
                                     fluidRow(
                                       column(5, plotlyOutput("barras_an_autonomico")),
                                       column(7, plotlyOutput("cortes_analisis"))
@@ -26,7 +26,7 @@ shinyUI(fluidPage(
                                       column(8, plotlyOutput("mapa_cyl")),
                                     )
                                     ),
-                           tabPanel("Análisis a nivel provincial", 
+                           tabPanel("Resultados a nivel provincial", 
                                     selectInput("provincia", "¿Qué provincia?", provincias, selected="Valladolid"),
                                     #textOutput("prueba"),
                                     fluidRow(
