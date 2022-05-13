@@ -296,6 +296,8 @@ parlamento <-
       geom_parliament_seats(size = seat_size) +
       draw_totalseats(n = sum(datos$Escanos), type = "semicircle") +
       theme_ggparliament() +
+      theme(axis.line = element_blank(),
+            panel.grid = element_blank())+
       scale_colour_manual(values = parl_data$Color,
                           limits = parl_data$Partido)
     
@@ -327,6 +329,7 @@ grafico_votos <- function(datos, provincia = F) {
     geom_col(fill = datos$Color) +
     theme_minimal() +
     labs(x = "Partido", y = "Porcentaje de voto") +
+    theme(panel.grid = element_blank())+
     scale_colour_manual(values = datos$Color,
                         limits = datos$Partido)
   grafico_barras <- ggplotly(grafico_barras) %>%
@@ -371,7 +374,10 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
   
   mapa <- ggplot(datos_mapa, aes(label = Partido))+
     geom_sf(fill = datos_mapa$Colores)+
-    theme_minimal()
+    theme_minimal()+
+    theme(axis.ticks = element_blank(),
+          axis.text = element_blank(),
+          panel.grid = element_blank())
   
   mapa <- ggplotly(mapa) %>%  style(hoveron = "fill") %>% # PARA QUE SALGA DENTRO Y NO EN EL BORDE
     layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",

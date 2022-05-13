@@ -80,8 +80,8 @@ shinyUI(
           ),
           tabPanel(
             "Reparto de escaños",
-            column(7, plotlyOutput("cortes_analisis")),
-            column(5, plotlyOutput("mapa_cyl"))
+            column(5, plotlyOutput("mapa_cyl")),
+            column(7, plotlyOutput("cortes_analisis"))
           )
           
         )
@@ -99,8 +99,8 @@ shinyUI(
           ),
           tabPanel(
             "Reparto de escaños",
-            column(7, plotlyOutput("procuradores_provin")),
-            column(5, plotlyOutput("mapa_prov"))
+            column(5, plotlyOutput("mapa_prov")),
+            column(7, plotlyOutput("procuradores_provin"))
           )
           
         )
