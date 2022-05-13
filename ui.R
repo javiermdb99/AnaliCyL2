@@ -11,14 +11,11 @@ shinyUI(
   dashboardPage(
     dashboardHeader(title = "AnaliCyL"),
     dashboardSidebar(sidebarMenu(
+      selectInput("eleccion", "Convocatoria:", elecciones, selected = "2022"),
       menuItem(
         "Inicio",
         icon = icon("house-user"),
-        tabName = "inicio",
-        startExpanded = T,
-        menuSubItem(
-          selectInput("eleccion", "Convocatoria:", elecciones, selected = "2022")
-        )
+        tabName = "inicio"
       ),
       menuItem(
         "Resultados electorales",
@@ -26,9 +23,8 @@ shinyUI(
         menuSubItem("Resultados a nivel provincial", tabName = "resultadosProv")
       ),
       menuItem(
-        "Sistema de circ. provinciales", tabName = "circProv",
-        menuSubItem("Reparto a nivel autonómico", tabName = "circProvAut"),
-        menuSubItem("Reparto a nivel provincial", tabName = "circProvProv")
+        "Sistema de circ. provinciales", tabName = "circProv"
+        
       ),
       menuItem(
         "Sistema de circ. autonómica", tabName = "circAut"
@@ -80,97 +76,79 @@ shinyUI(
         )
       ),
       tabItem(
-        "circProvAut",
-        column(3),
-        column(7, plotlyOutput("cortes_prov"), align =
-                 "center"),
-        column(3)
+        "circProv",
+        fluidRow(
+          column(
+            4,
+            selectInput(
+              "metodo_prov",
+              "¿Qué método quieres utilizar?",
+              metodos,
+              selected = "D'Hont"
+            )
+          ),
+          column(
+            4,
+            sliderInput(
+              "barrera_prov",
+              "¿Qué barrera quieres utilizar?",
+              value = 3,
+              min = 0,
+              max = 10,
+              step = 0.5
+            )
+          )),
+        tabsetPanel(
+          tabPanel(
+            "Análisis a nivel autonómico",
+            fluidRow(column(2),
+                     column(8, plotlyOutput("cortes_prov"), align =
+                              "center"),
+                     column(2))
+          ),
+          
+          tabPanel(
+            "Análisis a nivel provincial",
+            selectInput("provincia_prov", "¿Qué provincia?", provincias, selected =
+                          "Valladolid"),
+            fluidRow(
+              column(2),
+              column(
+                8, plotlyOutput("procuradores_provin_prov"), align = "center"
+              ),
+              column(2))
+          )
+        )
       ),
       tabItem(
-        "circProvProv",
-        selectInput("provincia_prov", "¿Qué provincia?", provincias, selected =
-                      "Valladolid"),
-        fluidRow(
-          column(3),
-          column(7, plotlyOutput("procuradores_provin_prov"), align =
-                   "center"),
-          column(3))
+        "circAut",
+        fluidRow(column(
+            4,
+            selectInput(
+              "metodo_aut",
+              "¿Qué método quieres utilizar?",
+              metodos,
+              selected = "D'Hont"
+            )
+          ),
+          column(
+            4,
+            sliderInput(
+              "barrera_aut",
+              "¿Qué barrera quieres utilizar?",
+              value = 3,
+              min = 0,
+              max = 10,
+              step = 0.5
+            )
+          )),
+        fluidRow(column(2),
+                 column(8, plotlyOutput("cortes_aut"), align =
+                          "center"),
+                 column(2))
+        
       )
       )
     )
   )
-#   fluidPage(
-# 
-#     # Application title
-#     titlePanel("AnaliCyL"),
-#     selectInput("eleccion", "Convocatoria:", elecciones, selected = "2022"),
-#     tabsetPanel(
-#                 tabPanel("Resultados electorales", id="analisis",
-#                          tabsetPanel(
-#                            tabPanel("Resultados a nivel autonómico",
-#                                     fluidRow(
-#                                       column(5, plotlyOutput("barras_an_autonomico")),
-#                                       column(7, plotlyOutput("cortes_analisis"))
-#                                       ),
-#                                     fluidRow(
-#                                       column(1),
-#                                       column(2, tableOutput("tabla_cyl")),
-#                                       column(1),
-#                                       column(8, plotlyOutput("mapa_cyl")),
-#                                     )
-#                                     ),
-#                            tabPanel("Resultados a nivel provincial", 
-#                                     selectInput("provincia", "¿Qué provincia?", provincias, selected="Valladolid"),
-#                                     #textOutput("prueba"),
-#                                     fluidRow(
-#                                       column(5, plotlyOutput("barras_an_provincial")),
-#                                       column(7, plotlyOutput("procuradores_provin"))),
-#                                     fluidRow(
-#                                       column(1),
-#                                       column(2, tableOutput("tabla_prov")),
-#                                       column(1),
-#                                       column(8, plotlyOutput("mapa_prov")),
-#                                     )
-#                                     )
-#                            ),
-#                          ),
-#                 tabPanel("Sistema de circunscripciones provinciales", id = "prov",
-#                          fluidRow(
-#                            #column(4, selectInput("eleccion_prov", "¿Qué elecciones quieres analizar?", elecciones, selected = "2019")),
-#                            column(4, selectInput("metodo_prov", "¿Qué método quieres utilizar?", metodos, selected = "D'Hont")),
-#                            column(4, sliderInput("barrera_prov", "¿Qué barrera quieres utilizar?", value = 3, min = 0, max = 10, step= 0.5))
-#                          ),
-#                          tabsetPanel(
-#                            tabPanel("Análisis a nivel autonómico",
-#                                     fluidRow(
-#             
-#                                       column(3),
-#                                       column(7, plotlyOutput("cortes_prov"), align="center"),
-#                                       column(3))),
-#                            
-#                            tabPanel("Análisis a nivel provincial", 
-#                                     selectInput("provincia_prov", "¿Qué provincia?", provincias, selected="Valladolid"),
-#                                     fluidRow(
-#                                       #column(5, plotlyOutput("barras_prov_provincial")),
-#                                       column(3),
-#                                       column(7, plotlyOutput("procuradores_provin_prov"), align="center"),
-#                                       column(3)))
-#                          )
-#                          ),
-#                 tabPanel("Sistema de circunscripción única", id = "auton",
-#                          fluidRow(
-#                            #column(4, selectInput("eleccion_aut", "¿Qué elecciones quieres analizar?", elecciones, selected = "2019")),
-#                            column(4, selectInput("metodo_aut", "¿Qué método quieres utilizar?", metodos, selected = "D'Hont")),
-#                            column(4, sliderInput("barrera_aut", "¿Qué barrera quieres utilizar?", value = 3, min = 0, max = 10, step= 0.5))
-#                          ),
-#                          fluidRow(
-#                            
-#                            column(3),
-#                            column(7, plotlyOutput("cortes_aut"), align="center"),
-#                            column(3))
-#                          ),
-#                 tabPanel("Sistema de compensación", id = "comp")
-#                 )
-# 
-# )
 )
