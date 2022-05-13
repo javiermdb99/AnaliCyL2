@@ -23,11 +23,42 @@ shinyUI(
         menuSubItem("Resultados a nivel provincial", tabName = "resultadosProv")
       ),
       menuItem(
-        "Sistema de circ. provinciales", tabName = "circProv"
+        "Sistema de circ. provinciales",
+        selectInput(
+          "metodo_prov",
+          "Método de reparto:",
+          metodos,
+          selected = "D'Hont"
+        ),
+        sliderInput(
+          "barrera_prov",
+          "Barrera de entrada:",
+          value = 3,
+          min = 0,
+          max = 10,
+          step = 0.5
+        ),
+        menuSubItem("Reparto a nivel autonómico", tabName = "circProvAut"),
+        menuSubItem("Reparto a nivel provincial", tabName = "circProvProv")
         
       ),
       menuItem(
-        "Sistema de circ. autonómica", tabName = "circAut"
+        "Sistema de circ. autonómica", 
+        selectInput(
+          "metodo_aut",
+          "Método de reparto:",
+          metodos,
+          selected = "D'Hont"
+        ),
+        sliderInput(
+          "barrera_aut",
+          "Barrera de entrada:",
+          value = 3,
+          min = 0,
+          max = 10,
+          step = 0.5
+        ),
+        menuSubItem("Reparto a nivel autonómico", tabName = "circAut")
       ),
       menuItem(
         "Sistema de compensación", tabName = "compensacion"
@@ -43,8 +74,7 @@ shinyUI(
         tabsetPanel(
           tabPanel(
             "Información sobre los votos",
-            column(7, plotlyOutput("barras_an_autonomico")),
-            column(2),
+            column(9, plotlyOutput("barras_an_autonomico")),
             column(2, tableOutput("tabla_cyl")),
             column(1)
           ),
@@ -76,72 +106,26 @@ shinyUI(
         )
       ),
       tabItem(
-        "circProv",
-        fluidRow(
-          column(
-            4,
-            selectInput(
-              "metodo_prov",
-              "¿Qué método quieres utilizar?",
-              metodos,
-              selected = "D'Hont"
-            )
-          ),
-          column(
-            4,
-            sliderInput(
-              "barrera_prov",
-              "¿Qué barrera quieres utilizar?",
-              value = 3,
-              min = 0,
-              max = 10,
-              step = 0.5
-            )
-          )),
-        tabsetPanel(
-          tabPanel(
-            "Análisis a nivel autonómico",
+            "circProvAut",
             fluidRow(column(2),
                      column(8, plotlyOutput("cortes_prov"), align =
                               "center"),
-                     column(2))
-          ),
-          
-          tabPanel(
-            "Análisis a nivel provincial",
-            selectInput("provincia_prov", "¿Qué provincia?", provincias, selected =
-                          "Valladolid"),
-            fluidRow(
-              column(2),
-              column(
-                8, plotlyOutput("procuradores_provin_prov"), align = "center"
-              ),
-              column(2))
-          )
+                     column(2)
         )
       ),
       tabItem(
-        "circAut",
-        fluidRow(column(
-            4,
-            selectInput(
-              "metodo_aut",
-              "¿Qué método quieres utilizar?",
-              metodos,
-              selected = "D'Hont"
-            )
-          ),
+        "circProvProv",
+        selectInput("provincia_prov", "¿Qué provincia?", provincias, selected =
+                      "Valladolid"),
+        fluidRow(
+          column(2),
           column(
-            4,
-            sliderInput(
-              "barrera_aut",
-              "¿Qué barrera quieres utilizar?",
-              value = 3,
-              min = 0,
-              max = 10,
-              step = 0.5
-            )
-          )),
+            8, plotlyOutput("procuradores_provin_prov"), align = "center"
+          ),
+          column(2))
+      ),
+      tabItem(
+        "circAut",
         fluidRow(column(2),
                  column(8, plotlyOutput("cortes_aut"), align =
                           "center"),
