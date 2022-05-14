@@ -35,83 +35,83 @@ muni_geo$Municipio <- muni_geo$Municipio %>% toupper() %>%
 # Esta función limpia de acentos el dataframe que se ha pasado como argumento,
 # así como normaliza los nombres de los partidos a los nombres más conocidos a nivel
 # estatal y autonómico
-clean <- function(df) {
-  df$Partido <- factor(gsub('\\.', "", df$Partido))
-  df$Censo <- as.integer(gsub('\\.', "", as.character(df$Censo)))
-  
-  df$Provincia <- gsub('Á', 'A', as.character(df$Provincia))
-  df$Provincia <- gsub('É', 'E', as.character(df$Provincia))
-  df$Provincia <- gsub('Í', 'I', as.character(df$Provincia))
-  df$Provincia <- gsub('Ó', 'O', as.character(df$Provincia))
-  df$Provincia <- gsub('Ú', 'U', as.character(df$Provincia))
-  
-  df$Municipio <- gsub('Á', 'A', as.character(df$Municipio))
-  df$Municipio <- gsub('É', 'E', as.character(df$Municipio))
-  df$Municipio <- gsub('Í', 'I', as.character(df$Municipio))
-  df$Municipio <- gsub('Ó', 'O', as.character(df$Municipio))
-  df$Municipio <- gsub('Ú', 'U', as.character(df$Municipio))
-  
-  
-  df$Partido <-
-    as.factor(gsub('ñ', 'n', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('Ñ', 'N', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub(' ', '', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub(
-      '.*PODEMOS.*',
-      'Podemos',
-      as.character(df$Partido),
-      ignore.case = T
-    ))
-  df$Partido <-
-    as.factor(gsub('.*IU.*', 'IU', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PNC.*', 'PNC', as.character(df$Partido), ignore.case = T))
-  df$Partido <-
-    as.factor(gsub('APB.*', 'APB', as.character(df$Partido))) # cuidado
-  df$Partido <-
-    as.factor(gsub('AP-.*', 'AP', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('AP', 'AP', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PSOE.*', 'PSOE', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PREPAL.*', 'PREPAL', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PCE.*', 'PCE', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*TC.*', 'PCAS', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PCAL.*', 'PCAS', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*UPSA.*', 'UPSa', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*PTE.*', 'PTE', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*URCL.*', 'URCL', as.character(df$Partido)))
-  df$Partido <-
-    as.factor(gsub('.*CDS.*', 'CDS', as.character(df$Partido)))
-
-  return(df)
-}
-
-# como cambia según la entrada, esta función sirve para leer los datos y devolver
-# los datos limpios
-read_and_clean <- function(datos) {
-  datos <-
-    read.table(
-      datos,
-      header = T,
-      sep = ";",
-      dec = ",",
-      stringsAsFactors = T
-    )
-  datos <- clean(datos)
-  
-  return(datos)
-}
+# clean <- function(df) {
+#   df$Partido <- factor(gsub('\\.', "", df$Partido))
+#   df$Censo <- as.integer(gsub('\\.', "", as.character(df$Censo)))
+#   
+#   df$Provincia <- gsub('Á', 'A', as.character(df$Provincia))
+#   df$Provincia <- gsub('É', 'E', as.character(df$Provincia))
+#   df$Provincia <- gsub('Í', 'I', as.character(df$Provincia))
+#   df$Provincia <- gsub('Ó', 'O', as.character(df$Provincia))
+#   df$Provincia <- gsub('Ú', 'U', as.character(df$Provincia))
+#   
+#   df$Municipio <- gsub('Á', 'A', as.character(df$Municipio))
+#   df$Municipio <- gsub('É', 'E', as.character(df$Municipio))
+#   df$Municipio <- gsub('Í', 'I', as.character(df$Municipio))
+#   df$Municipio <- gsub('Ó', 'O', as.character(df$Municipio))
+#   df$Municipio <- gsub('Ú', 'U', as.character(df$Municipio))
+#   
+#   
+#   df$Partido <-
+#     as.factor(gsub('ñ', 'n', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('Ñ', 'N', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub(' ', '', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub(
+#       '.*PODEMOS.*',
+#       'Podemos',
+#       as.character(df$Partido),
+#       ignore.case = T
+#     ))
+#   df$Partido <-
+#     as.factor(gsub('.*IU.*', 'IU', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PNC.*', 'PNC', as.character(df$Partido), ignore.case = T))
+#   df$Partido <-
+#     as.factor(gsub('APB.*', 'APB', as.character(df$Partido))) # cuidado
+#   df$Partido <-
+#     as.factor(gsub('AP-.*', 'AP', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('AP', 'AP', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PSOE.*', 'PSOE', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PREPAL.*', 'PREPAL', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PCE.*', 'PCE', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*TC.*', 'PCAS', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PCAL.*', 'PCAS', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*UPSA.*', 'UPSa', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*PTE.*', 'PTE', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*URCL.*', 'URCL', as.character(df$Partido)))
+#   df$Partido <-
+#     as.factor(gsub('.*CDS.*', 'CDS', as.character(df$Partido)))
+# 
+#   return(df)
+# }
+# 
+# # como cambia según la entrada, esta función sirve para leer los datos y devolver
+# # los datos limpios
+# read_and_clean <- function(datos) {
+#   datos <-
+#     read.table(
+#       datos,
+#       header = T,
+#       sep = ";",
+#       dec = ",",
+#       stringsAsFactors = T
+#     )
+#   datos <- clean(datos)
+#   
+#   return(datos)
+# }
 
 # Se calculan los blancos y nulos por municipio y se añaden como unos partidos más
 # Devuelve un dataframe con la Provincia, Municipio, Partido (con blancos y nulos) y Votos
@@ -372,7 +372,7 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
       mutate(Texto = paste("Municipio:", Municipio, "\nPartido más votado:", Partido))
   }
   
-  mapa <- ggplot(datos_mapa, aes(label = Partido))+
+  mapa <- ggplot(datos_mapa, aes(label = Partido))+ #
     geom_sf(fill = datos_mapa$Colores)+
     theme_minimal()+
     theme(axis.ticks = element_blank(),
@@ -391,8 +391,16 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
 shinyServer(function(input, output) {
   anio <- reactive(input$eleccion)
   eleccion <-
-    reactive(paste("./resultados/", anio(), ".csv", sep = ""))
-  datos <- reactive(read_and_clean(eleccion()))
+    reactive(paste("./resultados_limpios/", anio(), ".csv", sep = ""))
+  datos <- reactive({
+    read.table(
+      eleccion(),
+      header = T,
+      sep = ";",
+      dec = ",",
+      stringsAsFactors = T
+    )
+  })
   res_totales <- reactive(separacion_bn(datos()))
   res_partidos <- reactive(resultados_totales(res_totales()))
   
