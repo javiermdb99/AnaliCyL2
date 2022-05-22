@@ -174,11 +174,13 @@ tabla_informacion <- function(datos, provincia){
       select(Partido, Votos) %>% distinct() %>% ungroup()
   }
   
-  bn <- votos %>% filter(Partido == "Votos en blanco" | Partido == "Votos nulos")
-  votos <- votos %>% filter(Partido != "Votos en blanco" & Partido != "Votos nulos") %>% 
-    arrange(desc(Votos))
-  
-  votos <- votos %>% bind_rows(bn) %>% mutate(Porcentaje = Votos/sum(Votos)*100)
+  nulo <- votos %>% filter(Partido == "Votos nulos")
+  votos <- votos %>% filter(Partido != "Votos nulos") %>% 
+    arrange(desc(Votos)) %>% mutate(Porcentaje = Votos/sum(Votos)*100) %>% 
+    filter(Porcentaje > 0.1)
+  blanco <- votos %>% filter(Partido == "Votos en blanco")
+  votos <- votos %>% filter(Partido != "Votos en blanco")
+  votos <- votos %>% bind_rows(blanco) %>% bind_rows(nulo) 
   
   return(votos)
 }
@@ -373,7 +375,7 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
   }
   
   mapa <- ggplot(datos_mapa, aes(label = Partido))+ #
-    geom_sf(fill = datos_mapa$Colores)+
+    geom_sf(fill=datos_mapa$Colores)+
     theme_minimal()+
     theme(axis.ticks = element_blank(),
           axis.text = element_blank(),
