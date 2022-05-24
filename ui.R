@@ -61,7 +61,29 @@ shinyUI(
         menuSubItem("Reparto a nivel autonómico", tabName = "circAut")
       ),
       menuItem(
-        "Sistema de compensación", tabName = "compensacion"
+        "Sistema de compensación",
+        selectInput("metodo_comp",
+                    "Método de reparto:",
+                    metodos,
+                    selected = "D'Hont"),
+        sliderInput(
+          "barrera_comp_aut",
+          "Barrera de compensación:",
+          value = 3,
+          min = 0,
+          max = 10,
+          step = 0.5
+        ),
+        sliderInput(
+          "barrera_comp_prov",
+          "Barrera provincial:",
+          value = 3,
+          min = 0,
+          max = 10,
+          step = 0.5
+        ),
+        menuSubItem("Reparto total", tabName = "circCompAut"),
+        menuSubItem("Reparto por circunscripciones", tabName = "circCompProv")
       )
     )),
     dashboardBody(
@@ -115,7 +137,7 @@ shinyUI(
       ),
       tabItem(
         "circProvProv",
-        selectInput("provincia_prov", "¿Qué provincia?", provincias, selected =
+        selectInput("provincia_prov", "Provincia:", provincias, selected =
                       "Valladolid"),
         fluidRow(
           column(2),
@@ -131,6 +153,22 @@ shinyUI(
                           "center"),
                  column(2))
         
+      ),
+      tabItem(
+        "circCompAut",
+        fluidRow(column(2),
+                 column(8), #aquí el gráfico
+                 column(2)
+        )
+      ),
+      tabItem(
+        "circCompProv",
+        selectInput("provincia_comp_prov", "Circunscripción:", provincias, selected =
+                      "Valladolid"),
+        fluidRow(
+          column(2),
+          column(8), # aquí el gráfico
+          column(2))
       )
       )
     )
