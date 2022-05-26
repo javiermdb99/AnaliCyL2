@@ -20,6 +20,7 @@ options(digits = 2)
 escanos <- read.csv("./resultados/escanos.csv", header = T)
 escanos$Provincia <- gsub('Ó', 'O', as.character(escanos$Provincia))
 names(escanos) <- gsub('X', '', as.character(names(escanos)))
+
 colores <- read.csv("colores.csv")
 Partido <- colores %>% pull(Partido)
 colores$Color[colores$Color==""] <- 1:100
@@ -69,7 +70,6 @@ resultados_totales <- function(datos) {
     group_by(Partido) %>% mutate(VotosCCAA = sum(VotosMuni)) %>% 
     ungroup() %>% mutate(PorcCCAA = VotosCCAA/sum(VotosMuni)*100)
   # OJO CON EL UMBRAL AQUÍ
-  
   return(prov)
 }
 
@@ -171,7 +171,6 @@ asignar_cuota_hare <-
     
     escanos$Partido <- factor(escanos$Partido, levels = Partido)
     escanos$Escanos[is.na(escanos$Escanos)] <- 0
-
 
     return(escanos)
     
