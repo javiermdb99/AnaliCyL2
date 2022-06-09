@@ -106,15 +106,18 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
   
   #obtención de los votos
   votos_circ <- list()
+  votos_totales <- list()
   for (i in 1:9){
     provincia <- provincias[i]
-    votos_circ[[i]] <- datos %>% filter(Provincia == provincia, Porc > barrera_prov) %>% 
+    votos_totales[[i]] <- datos %>% filter(Provincia == provincia) %>% 
       select(Partido, Votos, Porc) %>% distinct()
+    votos_circ[[i]] <- votos_totales[[i]] %>% filter(Porc > barrera_prov)
   }
   
   votos_circ[[10]] <- datos %>% group_by(Partido) %>%
     select(Partido, VotosCCAA, PorcCCAA) %>% distinct() %>% ungroup() %>%
     filter(PorcCCAA > barrera_aut) %>% rename(Votos = VotosCCAA, Porc = PorcCCAA)
+  names(votos_totales) <- provincias[-10]
   names(votos_circ) <- provincias
   
   # asignación de escaños provincial (2 menos para VLL, BU, LE Y SA y 1 menos
@@ -162,6 +165,40 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
   escanos_repartir_comp <- sum(escanos_comp$Escanos) - escanos_partidos_noumbral
   frame_circ$CYL <- obtener_reparto(votos_circ$CYL, anio, "CYL", method,
                                     escanos_repartir_comp)$Escanos
-  browser()
+  
+  frame_circ$CYL_fijos <- rowSums(frame_circ[,-c(1, 11)]) # se suman los escaños fijos para comparar
+  frame_circ <- frame_circ %>% group_by(Partido) %>% 
+    mutate(CYL_final = max(CYL, CYL_fijos), COMP = CYL > CYL_fijos) %>% 
+    ungroup()
+  
+  npartidos_comp <- dim(frame_circ[frame_circ$COMP,])[1]
+
+  for (i in 1:npartidos_comp){
+    partido <- frame_circ[frame_circ$COMP,][i,1] %>% pull() %>% as.character()
+    cocientes <- c()
+    dif_esc <- frame_circ[frame_circ$COMP,][i,]$CYL - frame_circ[frame_circ$COMP,][i,]$CYL_fijos
+    
+    for (j in 1:9){ #posiciones en las provincias en la lista votos_totales
+      # los pull son para transformar a enteros
+      temp <- votos_totales[[j]] %>% filter(Partido == partido) %>% pull(Votos)
+      cocientes[j] <- if(length(temp) == 0) 0 else temp 
+      # UPL, 4, ERROR, HACER QUE NUMERIC(0) SEA UN 0
+      esc_fijos <- frame_circ[frame_circ$COMP, ][i,j+1] %>% pull()
+      divisor <- if (method=="D'Hont") esc_fijos+1 else 2*esc_fijos+1
+      cocientes[j] <- cocientes[j]/divisor
+    }
+
+    for (j in 1:dif_esc){
+      max_cociente <- which.max(cocientes)
+      frame_circ[frame_circ$COMP, ][i, max_cociente+1] <- 
+        (frame_circ[frame_circ$COMP, ][i, max_cociente+1] %>% pull()) + 1
+      esc_fijos <- frame_circ[frame_circ$COMP, ][i, max_cociente+1] %>% pull()
+      divisor <- if (method=="D'Hont") esc_fijos+1 else 2*esc_fijos+1
+      cocientes[max_cociente] <- cocientes[max_cociente]/divisor
+    }
+  }
+  frame_circ <- frame_circ %>% select(1:10)
+  
+  return(frame_circ)
 }
 resultados_compensacion(datos, 2022, 3, 3, "D'Hont")

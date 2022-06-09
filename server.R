@@ -1,11 +1,3 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 library(shiny)
 library(tidyr)
 library(ggplot2)
@@ -55,7 +47,6 @@ separacion_bn <- function(datos){
            "Votos nulos") %>% arrange(Provincia, Municipio) # esto que se aparte, mantenerlo SIEMPRE
   bn <-
     muni %>% bind_rows(blanconulo) %>% arrange(Provincia, Municipio) %>% ungroup() # va con nulos.
-  
   return(bn)
 }
 
@@ -129,7 +120,7 @@ calcular_cocientes <-
         data.frame(lapply(datos$Votos, function(x)
           x / (1:escanos_provincia)))
       
-    } else if (method == "Sainte-Lagüe") {
+    } else if (method == "Sainte-Laguë") {
       reparto <- data.frame(lapply(datos$Votos, function(x)
         x / (seq(
           1, escanos_provincia * 2, by = 2

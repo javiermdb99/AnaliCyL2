@@ -5,8 +5,8 @@ library(plotly)
 elecciones <- as.character(c(1983, 1987, 1991, 1995, 1999, 2003, 2007, 2011, 2015, 2019, 2022))
 provincias <- c("Ávila", "Burgos", "León", "Palencia", "Salamanca", "Segovia", "Soria", 
                 "Valladolid", "Zamora")
-metodos <- c("D'Hont","Sainte-Lagüe", "Cuota Hare")
-# Define UI for application that draws a histogram
+metodos <- c("D'Hont","Sainte-Laguë", "Cuota Hare")
+
 shinyUI(
   dashboardPage(
     dashboardHeader(title = "AnaliCyL"),
