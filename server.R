@@ -167,18 +167,21 @@ asignar_cuota_hare <-
     
   }
 
-obtener_reparto <- function(datos, anio, provincia, method = "D'Hont"){
+obtener_reparto <- function(datos, anio, provincia, method = "D'Hont", escanos_provincia = "no"){
   provincia <- toupper(provincia)
   datos <- datos %>% filter(Partido != "Votos en blanco")
+  if (escanos_provincia == "no") {
+    if (provincia == "CYL") {
+      escanos_provincia <-
+        as.integer(escanos %>% select(as.character(anio)) %>%
+                     sum())
+    } else {
+      escanos_provincia <-
+        as.integer(escanos %>% filter(Provincia == provincia) %>%
+                     select(as.character(anio)))
+    }
+  }
   
-  if(provincia == "CYL"){
-    escanos_provincia <- as.integer(escanos %>% select(as.character(anio)) %>% 
-                                      sum())
-  } else {
-  escanos_provincia <-
-    as.integer(escanos %>% filter(Provincia == provincia) %>%
-                 select(as.character(anio)))}
-
   if (method == "Cuota Hare"){
     escanos <- asignar_cuota_hare(datos, anio, provincia, escanos_provincia)
   } else {
@@ -187,6 +190,109 @@ obtener_reparto <- function(datos, anio, provincia, method = "D'Hont"){
   }
   
   return(escanos)
+}
+
+resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, method){
+  provincias <- c("AVILA", "BURGOS", "LEON", 
+                  "PALENCIA", "SALAMANCA", "SEGOVIA", 
+                  "SORIA", "VALLADOLID", "ZAMORA",
+                  "CYL")
+  #obtención de los votos
+  votos_circ <- list()
+  votos_totales <- list()
+  for (i in 1:9){
+    provincia <- provincias[i]
+    votos_totales[[i]] <- datos %>% filter(Provincia == provincia) %>% 
+      select(Partido, Votos, Porc) %>% distinct()
+    votos_circ[[i]] <- votos_totales[[i]] %>% filter(Porc > barrera_prov)
+  }
+  
+  votos_circ[[10]] <- datos %>% group_by(Partido) %>%
+    select(Partido, VotosCCAA, PorcCCAA) %>% distinct() %>% ungroup() %>%
+    filter(PorcCCAA > barrera_aut) %>% rename(Votos = VotosCCAA, Porc = PorcCCAA)
+  names(votos_totales) <- provincias[-10]
+  names(votos_circ) <- provincias
+  
+  # asignación de escaños provincial (2 menos para VLL, BU, LE Y SA y 1 menos
+  # para el resto)
+  
+  escanos_comp <- escanos %>% select(Provincia, as.character(anio)) %>% 
+    rename(Escanos = as.character(anio))
+  escanos_maspobladas <-
+    escanos_comp %>% filter(Provincia %in% c("VALLADOLID",
+                                             "LEON",
+                                             "BURGOS",
+                                             "SALAMANCA")) %>% 
+    mutate(Escanos = Escanos - 2)
+  
+  escanos_menpobladas <-
+    escanos_comp %>% filter(!Provincia %in% c("VALLADOLID",
+                                              "LEON",
+                                              "BURGOS",
+                                              "SALAMANCA")) %>% 
+    mutate(Escanos = Escanos - 1)
+  escanos_fijos <- bind_rows(escanos_maspobladas, escanos_menpobladas)
+  
+  escanos_circ <- list()
+  for (i in 1:9){
+    provincia <-  provincias[i]
+    escanos_prov <- escanos_fijos %>% filter(Provincia == provincia) %>% 
+      pull(Escanos)
+    escanos_circ[[i]] <- obtener_reparto(votos_circ[[i]], anio, provincia, method, escanos_prov)
+  }
+  
+  frame_circ <- as.data.frame(escanos_circ)[,-seq(3, 2*length(escanos_circ), by=2)]
+  names(frame_circ) <- c("Partido", provincias[-10])
+  
+  # cáclulo de escaños total 
+  # se calcula el reparto con los escaños totales, pero se restan del cálculo 
+  # final los diputados conseguidos por partidos que han caído por debajo del 
+  # umbral autonómico
+  
+  # primero se calculan los partidos, en el df anterior, que NO están en los votos totales
+  # que ya están filtrados (votos_circ$CYL).
+  
+  partidos_umbral <- votos_circ$CYL$Partido
+  escanos_partidos_noumbral <- frame_circ %>% 
+    filter(!Partido %in% partidos_umbral) %>% select(!Partido) %>% sum()
+  escanos_repartir_comp <- sum(escanos_comp$Escanos) - escanos_partidos_noumbral
+  frame_circ$CYL <- obtener_reparto(votos_circ$CYL, anio, "CYL", method,
+                                    escanos_repartir_comp)$Escanos
+  
+  frame_circ$CYL_fijos <- rowSums(frame_circ[,-c(1, 11)]) # se suman los escaños fijos para comparar
+  frame_circ <- frame_circ %>% group_by(Partido) %>% 
+    mutate(CYL_final = max(CYL, CYL_fijos), COMP = CYL > CYL_fijos) %>% 
+    ungroup()
+  
+  npartidos_comp <- dim(frame_circ[frame_circ$COMP,])[1]
+  
+  for (i in 1:npartidos_comp){
+    partido <- frame_circ[frame_circ$COMP,][i,1] %>% pull() %>% as.character()
+    cocientes <- c()
+    dif_esc <- frame_circ[frame_circ$COMP,][i,]$CYL - frame_circ[frame_circ$COMP,][i,]$CYL_fijos
+    
+    for (j in 1:9){ #posiciones en las provincias en la lista votos_totales
+      # los pull son para transformar a enteros
+      temp <- votos_totales[[j]] %>% filter(Partido == partido) %>% pull(Votos)
+      cocientes[j] <- if(length(temp) == 0) 0 else temp 
+      # UPL, 4, ERROR, HACER QUE NUMERIC(0) SEA UN 0
+      esc_fijos <- frame_circ[frame_circ$COMP, ][i,j+1] %>% pull()
+      divisor <- if (method=="D'Hont") esc_fijos+1 else 2*esc_fijos+1
+      cocientes[j] <- cocientes[j]/divisor
+    }
+    
+    for (j in 1:dif_esc){
+      max_cociente <- which.max(cocientes)
+      frame_circ[frame_circ$COMP, ][i, max_cociente+1] <- 
+        (frame_circ[frame_circ$COMP, ][i, max_cociente+1] %>% pull()) + 1
+      esc_fijos <- frame_circ[frame_circ$COMP, ][i, max_cociente+1] %>% pull()
+      divisor <- if (method=="D'Hont") esc_fijos+1 else 2*esc_fijos+1
+      cocientes[max_cociente] <- cocientes[max_cociente]/divisor
+    }
+  }
+  frame_circ <- frame_circ %>% select(1:10, 13) %>% rename(CYL = CYL_final)
+  
+  return(frame_circ)
 }
 
 parlamento <-
@@ -582,4 +688,37 @@ shinyServer(function(input, output) {
   reparto_cyl_aut <- reactive(obtener_reparto(resultados_cyl_aut(), anio(), "cyl", method = metodo_aut()))
   
   output$cortes_aut <- renderPlotly(parlamento(reparto_cyl_aut(), seats_rows = 5, seat_size = 10))
-})
+
+  ##################################################################################
+  ##################################################################################
+  ##################################COMPENSACIÓN####################################
+  ##################################################################################
+  ##################################################################################
+  
+  metodo_comp <- reactive(input$metodo_comp)
+  barrera_comp_aut <- reactive(input$barrera_comp_aut)
+  barrera_comp_prov <- reactive(input$barrera_comp_prov)
+  prov_comp <- reactive(input$provincia_comp_prov %>% toupper() %>% gsub('Á', 'A', .) %>% 
+                          gsub('Ó', 'O', .))
+  
+  reparto_compensacion <- reactive(resultados_compensacion(res_partidos(), anio(), 
+                                                           barrera_comp_aut(), 
+                                                           barrera_comp_prov(), 
+                                                           metodo_comp()))
+  reparto_comp_total <- reactive(reparto_compensacion() %>% select(Partido, CYL) %>% 
+    rename(Escanos = CYL))
+  reparto_comp_prov <- reactive({
+    reparto_comp_prov <- reparto_compensacion() %>% select(Partido, prov_comp())
+    colnames(reparto_comp_prov)[2] <- "Escanos"
+    reparto_comp_prov
+    })
+  
+  
+  seats_prov <- reactive(if(prov_comp() == "VALLADOLID" | prov_comp() == "LEON" |
+                   prov_comp() == "BURGOS" | prov_comp() == "SALAMANCA") 2 else 1)
+  
+  output$cortes_comp <- renderPlotly(parlamento(reparto_comp_total(), 
+                                                seats_rows = 5, seat_size = 10))
+  output$procuradores_provin_comp <- renderPlotly(parlamento(reparto_comp_prov(), 
+                                                             seats_rows = seats_prov()))
+  })

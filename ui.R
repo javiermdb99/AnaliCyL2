@@ -64,7 +64,7 @@ shinyUI(
         "Sistema de compensación",
         selectInput("metodo_comp",
                     "Método de reparto:",
-                    metodos,
+                    metodos[-3],
                     selected = "D'Hont"),
         sliderInput(
           "barrera_comp_aut",
@@ -157,7 +157,7 @@ shinyUI(
       tabItem(
         "circCompAut",
         fluidRow(column(2),
-                 column(8), #aquí el gráfico
+                 column(8, plotlyOutput("cortes_comp"), align = "center"),
                  column(2)
         )
       ),
@@ -167,7 +167,7 @@ shinyUI(
                       "Valladolid"),
         fluidRow(
           column(2),
-          column(8), # aquí el gráfico
+          column(8, plotlyOutput("procuradores_provin_comp"), align = "center"),
           column(2))
       )
       )

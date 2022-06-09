@@ -10,10 +10,6 @@ library(sf)
 options(digits = 2)
 
 Partido <- read.csv("colores.csv")$Partido
-provincias <- c("AVILA", "BURGOS", "LEON", 
-                "PALENCIA", "SALAMANCA", "SEGOVIA", 
-                "SORIA", "VALLADOLID", "ZAMORA",
-                "CYL")
 datos <- read.table("partidos_2022_compensacion.txt")
 
 escanos <- read.csv("resultados/escanos.csv")
@@ -103,7 +99,10 @@ obtener_reparto <- function(datos, anio, provincia, method = "D'Hont", escanos_p
 
 
 resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, method){
-  
+  provincias <- c("AVILA", "BURGOS", "LEON", 
+                  "PALENCIA", "SALAMANCA", "SEGOVIA", 
+                  "SORIA", "VALLADOLID", "ZAMORA",
+                  "CYL")
   #obtención de los votos
   votos_circ <- list()
   votos_totales <- list()
@@ -197,8 +196,8 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
       cocientes[max_cociente] <- cocientes[max_cociente]/divisor
     }
   }
-  frame_circ <- frame_circ %>% select(1:10)
-  
+  frame_circ <- frame_circ %>% select(1:10, 13) %>% rename(CYL = CYL_final)
+
   return(frame_circ)
 }
-resultados_compensacion(datos, 2022, 3, 3, "D'Hont")
+View(resultados_compensacion(datos, 2022, 3, 3, "D'Hont"))
