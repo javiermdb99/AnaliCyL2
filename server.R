@@ -389,7 +389,7 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
     datos_mapa <- muni_geo %>% inner_join(masvotado_muni, by = "Municipio") %>% 
       mutate(Texto = paste("Municipio:", Municipio, "\nPartido más votado:", Partido))
   }
-  
+
   mapa <- ggplot(datos_mapa, aes(label = Partido))+ #
     geom_sf(fill=datos_mapa$Colores)+
     theme_minimal()+
@@ -492,6 +492,9 @@ shinyServer(function(input, output) {
                             seat_size = 10))
   output$barras_an_autonomico <-
     renderPlotly(grafico_votos(res_partidos()))
+  
+  output$evolucion_escanos <- 
+    renderPlotly(readRDS("./repartos/evolucion_escanos.rds"))
   
   parlamento_provin_an <- reactive(switch(
     input$provincia,

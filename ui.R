@@ -19,6 +19,7 @@ shinyUI(
       ),
       menuItem(
         "Resultados electorales",
+        menuSubItem("Resumen convocatorias", tabName = "resumen"),
         menuSubItem("Resultados a nivel autonómico", tabName = "resultadosAut"),
         menuSubItem("Resultados a nivel provincial", tabName = "resultadosProv")
       ),
@@ -92,10 +93,18 @@ shinyUI(
         tabName = "inicio"
       ),
       tabItem(
+        "resumen",
+        fluidRow(column(2),
+                 column(8, plotlyOutput("evolucion_escanos"), align =
+                          "center"),
+                 column(2))
+        
+      ),
+      tabItem(
         tabName = "resultadosAut",
         tabsetPanel(
           tabPanel(
-            "Información sobre los votos",
+            "Resultados electorales",
             column(9, plotlyOutput("barras_an_autonomico")),
             column(2, tableOutput("tabla_cyl")),
             column(1)
