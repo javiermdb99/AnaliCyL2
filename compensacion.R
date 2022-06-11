@@ -133,9 +133,9 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
   
   escanos_menpobladas <-
     escanos_comp %>% filter(!Provincia %in% c("VALLADOLID",
-                                             "LEON",
-                                             "BURGOS",
-                                             "SALAMANCA")) %>% 
+                                              "LEON",
+                                              "BURGOS",
+                                              "SALAMANCA")) %>% 
     mutate(Escanos = Escanos - 1)
   escanos_fijos <- bind_rows(escanos_maspobladas, escanos_menpobladas)
   
@@ -171,7 +171,7 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
     ungroup()
   
   npartidos_comp <- dim(frame_circ[frame_circ$COMP,])[1]
-
+  
   for (i in 1:npartidos_comp){
     partido <- frame_circ[frame_circ$COMP,][i,1] %>% pull() %>% as.character()
     cocientes <- c()
@@ -186,7 +186,7 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
       divisor <- if (method=="D'Hont") esc_fijos+1 else 2*esc_fijos+1
       cocientes[j] <- cocientes[j]/divisor
     }
-
+    
     for (j in 1:dif_esc){
       max_cociente <- which.max(cocientes)
       frame_circ[frame_circ$COMP, ][i, max_cociente+1] <- 
@@ -196,8 +196,8 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
       cocientes[max_cociente] <- cocientes[max_cociente]/divisor
     }
   }
+  browser()
   frame_circ <- frame_circ %>% select(1:10, 13) %>% rename(CYL = CYL_final)
-
   return(frame_circ)
 }
-View(resultados_compensacion(datos, 2022, 3, 3, "D'Hont"))
+resultados_compensacion(datos, 2022, 0, 0, "D'Hont")

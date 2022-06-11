@@ -70,7 +70,7 @@ shinyUI(
           "barrera_comp_aut",
           "Barrera de compensación:",
           value = 3,
-          min = 0,
+          min = 2,
           max = 10,
           step = 0.5
         ),
