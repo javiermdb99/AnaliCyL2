@@ -138,11 +138,11 @@ shinyUI(
       ),
       tabItem(
             "circProvAut",
-            fluidRow(column(2),
+            fluidRow(
                      column(8, plotlyOutput("cortes_prov"), align =
                               "center"),
-                     column(2)
-        )
+                     column(4, tableOutput("comp_prov"), align =
+                              "center"))
       ),
       tabItem(
         "circProvProv",
@@ -155,21 +155,18 @@ shinyUI(
           ),
           column(2))
       ),
-      tabItem(
-        "circAut",
-        fluidRow(column(2),
-                 column(8, plotlyOutput("cortes_aut"), align =
-                          "center"),
-                 column(2))
-        
-      ),
-      tabItem(
-        "circCompAut",
-        fluidRow(column(2),
-                 column(8, plotlyOutput("cortes_comp"), align = "center"),
-                 column(2)
-        )
-      ),
+      tabItem("circAut",
+              fluidRow(
+                column(8, plotlyOutput("cortes_aut"), align =
+                         "center"),
+                column(4, tableOutput("comp_aut"), align =
+                         "center")
+              )),
+      tabItem("circCompAut",
+              fluidRow(
+                column(8, plotlyOutput("cortes_comp"), align = "center"),
+                column(4, tableOutput("comp_compens"), align = "center")
+              )),
       tabItem(
         "circCompProv",
         selectInput("provincia_comp_prov", "Circunscripción:", provincias, selected =

@@ -16,6 +16,7 @@ names(escanos) <- gsub('X', '', as.character(names(escanos)))
 colores <- read.csv("colores.csv")
 Partido <- colores %>% pull(Partido)
 colores$Color[colores$Color==""] <- 1:100
+colores_partidos <- setNames(colores$Color, colores$Partido)
 
 datos_geo <- read_sf("./provincias/au.prov_cyl_recintos.shp") %>% rename(Provincia = nombre)
 datos_geo$Provincia <- datos_geo$Provincia %>% 
@@ -305,10 +306,13 @@ parlamento <-
       parl_rows = seats_rows,
       party_seats = datos$Escanos
     )
-
+    
+    # Obtención color y orden de los partidos por escaños conseguidos
     parl_data$Color <-
       colores$Color[match(parl_data$Partido, colores$Partido)]
-    # parl_data$Color[is.na(parl_data$Color)] <- as.character(1:100)
+    partidos_orden <- datos %>% arrange(desc(Escanos)) %>% pull(Partido)
+    parl_data$Partido <- factor(parl_data$Partido, levels = partidos_orden)
+      
     parlamento <-
       ggplot(parl_data, aes(x, y, colour = Partido, label = Escanos)) +
       geom_parliament_seats(size = seat_size) +
@@ -357,6 +361,20 @@ grafico_votos <- function(datos, provincia = F) {
   return(grafico_barras)
 }
 
+# Cálculo de la tabla que compara el reparto con el sistema actual y un sistema 
+# propuesto
+tabla_comparacion <- function(reparto, reparto_referencia){
+  tabla <- reparto_referencia %>% 
+    inner_join(reparto, by = c("Partido" = "Partido")) %>% 
+    filter(Escanos.x > 0 | Escanos.y > 0) %>% 
+    mutate(Escanos.x = as.integer(Escanos.x),
+           Escanos.y = as.integer(Escanos.y)) %>% 
+    arrange(desc(Escanos.x)) %>% 
+    rename("Sistema actual" = Escanos.x, "Sistema propuesto" = Escanos.y) 
+
+  return(tabla)
+}
+
 mapa_masvotado <- function(datos, provincia = "cyl"){
   
   if (provincia == "cyl") {
@@ -389,15 +407,17 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
     datos_mapa <- muni_geo %>% inner_join(masvotado_muni, by = "Municipio") %>% 
       mutate(Texto = paste("Municipio:", Municipio, "\nPartido más votado:", Partido))
   }
-
-  mapa <- ggplot(datos_mapa, aes(label = Partido))+ #
-    geom_sf(fill=datos_mapa$Colores)+
+  # browser()
+  mapa <- ggplot(datos_mapa, aes(fill = Partido))+ #, text=Texto
+    geom_sf()+
     theme_minimal()+
     theme(axis.ticks = element_blank(),
           axis.text = element_blank(),
-          panel.grid = element_blank())
-  
-  mapa <- ggplotly(mapa) %>%  style(hoveron = "fill") %>% # PARA QUE SALGA DENTRO Y NO EN EL BORDE
+          panel.grid = element_blank())+
+    scale_fill_manual(values=colores_partidos)+
+    theme(legend.position = "none")
+  mapa <- ggplotly(mapa)
+  mapa <-  mapa %>%  style(hoveron = "fills") %>% # PARA QUE SALGA DENTRO Y NO EN EL BORDE
     layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
            paper_bgcolor = "rgba(0, 0, 0, 0)") # Para transparencia
   
@@ -419,6 +439,8 @@ shinyServer(function(input, output) {
       stringsAsFactors = T
     )
   })
+  eleccion_referencia <- reactive(paste("./repartos/", anio(), ".csv", sep = ""))
+  reparto_sist_actual <- reactive(read.csv(eleccion_referencia(), header = T))
   res_totales <- reactive(separacion_bn(datos()))
   res_partidos <- reactive(resultados_totales(res_totales()))
   
@@ -652,6 +674,9 @@ shinyServer(function(input, output) {
                                      ))))
   # Esto se hace porque si no, hay recursión infinita
   
+  tabla_prov <- reactive(tabla_comparacion(reparto_cyl_prov(), reparto_sist_actual()))
+  output$comp_prov <- renderTable(tabla_prov())
+  
   output$cortes_prov <-
     renderPlotly(parlamento(
       reparto_cyl_prov(),
@@ -692,6 +717,8 @@ shinyServer(function(input, output) {
   
   output$cortes_aut <- renderPlotly(parlamento(reparto_cyl_aut(), seats_rows = 5, seat_size = 10))
 
+  tabla_aut <- reactive(tabla_comparacion(reparto_cyl_aut(), reparto_sist_actual()))
+  output$comp_aut <- renderTable(tabla_aut())
   ##################################################################################
   ##################################################################################
   ##################################COMPENSACIÓN####################################
@@ -724,4 +751,6 @@ shinyServer(function(input, output) {
                                                 seats_rows = 5, seat_size = 10))
   output$procuradores_provin_comp <- renderPlotly(parlamento(reparto_comp_prov(), 
                                                              seats_rows = seats_prov()))
+  tabla_comp <- reactive(tabla_comparacion(reparto_comp_total(), reparto_sist_actual()))
+  output$comp_compens <- renderTable(tabla_comp())
   })
