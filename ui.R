@@ -83,8 +83,8 @@ shinyUI(
           max = 10,
           step = 0.5
         ),
-        menuSubItem("Reparto total", tabName = "circCompAut"),
-        menuSubItem("Reparto por circunscripciones", tabName = "circCompProv")
+        menuSubItem("Reparto a nivel autonómico", tabName = "circCompAut"),
+        menuSubItem("Reparto a nivel provincial", tabName = "circCompProv")
       )
     )),
     dashboardBody(
@@ -104,7 +104,7 @@ shinyUI(
         tabName = "resultadosAut",
         tabsetPanel(
           tabPanel(
-            "Resultados electorales",
+            "Resultados",
             column(9, plotlyOutput("barras_an_autonomico")),
             column(2, tableOutput("tabla_cyl")),
             column(1)
@@ -122,7 +122,7 @@ shinyUI(
         selectInput("provincia", "Provincia:", provincias, selected="Valladolid"),
         tabsetPanel(
           tabPanel(
-            "Información sobre los votos",
+            "Resultados",
             column(7, plotlyOutput("barras_an_provincial")),
             column(2),
             column(2, tableOutput("tabla_prov")),

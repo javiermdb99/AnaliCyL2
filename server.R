@@ -321,7 +321,8 @@ parlamento <-
       theme(axis.line = element_blank(),
             panel.grid = element_blank())+
       scale_colour_manual(values = parl_data$Color,
-                          limits = parl_data$Partido)
+                          limits = parl_data$Partido)+
+      labs(title = "Reparto de escaños")
     
     parlamento <-
       ggplotly(parlamento, tooltip = c("Partido", "Escanos")) %>% 
@@ -353,7 +354,11 @@ grafico_votos <- function(datos, provincia = F) {
     labs(x = "Partido", y = "Porcentaje de voto") +
     theme(panel.grid = element_blank())+
     scale_colour_manual(values = datos$Color,
-                        limits = datos$Partido)
+                        limits = datos$Partido)+
+    labs(title = "Porcentaje de votos",
+         x = "",
+         y = "Porcentaje")
+    
   grafico_barras <- ggplotly(grafico_barras) %>%
     layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
            paper_bgcolor = "rgba(0, 0, 0, 0)")
@@ -415,7 +420,8 @@ mapa_masvotado <- function(datos, provincia = "cyl"){
           axis.text = element_blank(),
           panel.grid = element_blank())+
     scale_fill_manual(values=colores_partidos)+
-    theme(legend.position = "none")
+    theme(legend.position = "none")+
+    labs(title = "Partido más votado")
   mapa <- ggplotly(mapa)
   mapa <-  mapa %>%  style(hoveron = "fills") %>% # PARA QUE SALGA DENTRO Y NO EN EL BORDE
     layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
