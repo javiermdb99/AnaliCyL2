@@ -9,7 +9,7 @@ metodos <- c("D'Hont","Sainte-Laguë", "Cuota Hare")
 
 shinyUI(
   dashboardPage(
-    dashboardHeader(title = "AnaliCyL"),
+    dashboardHeader(title = "ElecCyL"),
     dashboardSidebar(sidebarMenu(
       selectInput("eleccion", "Convocatoria:", elecciones, selected = "2022"),
       menuItem(
@@ -24,7 +24,7 @@ shinyUI(
         menuSubItem("Resultados a nivel provincial", tabName = "resultadosProv")
       ),
       menuItem(
-        "Sistema de circ. provinciales",
+        "Circunscripciones provinciales",
         selectInput(
           "metodo_prov",
           "Método de reparto:",
@@ -44,7 +44,7 @@ shinyUI(
         
       ),
       menuItem(
-        "Sistema de circ. autonómica", 
+        "Circunscripción autonómica", 
         selectInput(
           "metodo_aut",
           "Método de reparto:",
@@ -62,7 +62,7 @@ shinyUI(
         menuSubItem("Reparto a nivel autonómico", tabName = "circAut")
       ),
       menuItem(
-        "Sistema de compensación",
+        "Provincias con compensación",
         selectInput("metodo_comp",
                     "Método de reparto:",
                     metodos[-3],
@@ -102,6 +102,10 @@ shinyUI(
       ),
       tabItem(
         tabName = "resultadosAut",
+        tags$p("Resultados electorales bajo el sistema actual: "),
+        tags$p("Circunscripción: provincia"),
+        tags$p("Método de reparto: D'Hont"),
+        tags$p("Barrera electoral: 3%"),
         tabsetPanel(
           tabPanel(
             "Resultados",
@@ -119,6 +123,11 @@ shinyUI(
       ),
       tabItem(
         "resultadosProv",
+        tags$p("Resultados electorales bajo el sistema actual: "),
+        tags$p("Circunscripción: provincia"),
+        tags$p("Método de reparto: D'Hont"),
+        tags$p("Barrera electoral: 3%"),
+        textOutput("texto_provincia"),
         selectInput("provincia", "Provincia:", provincias, selected="Valladolid"),
         tabsetPanel(
           tabPanel(
@@ -130,14 +139,18 @@ shinyUI(
           ),
           tabPanel(
             "Reparto de escaños",
-            column(5, plotlyOutput("mapa_prov")),
-            column(7, plotlyOutput("procuradores_provin"))
+            column(7, plotlyOutput("mapa_prov")),
+            column(5, plotlyOutput("procuradores_provin"))
           )
           
         )
       ),
       tabItem(
             "circProvAut",
+            tags$p("Circunscripción: provincia"),
+            textOutput("texto_metodo_prov_tot"),
+            textOutput("texto_barrera_prov_tot"),
+            tags$br(),
             fluidRow(
                      column(8, plotlyOutput("cortes_prov"), align =
                               "center"),
@@ -145,7 +158,11 @@ shinyUI(
                               "center"))
       ),
       tabItem(
-        "circProvProv",
+        "circProvProv",            
+        textOutput("texto_metodo_prov_prov"),
+        textOutput("texto_barrera_prov_prov"),
+        textOutput("texto_provincia_prov_prov"),
+        tags$br(),
         selectInput("provincia_prov", "Provincia:", provincias, selected =
                       "Valladolid"),
         fluidRow(
@@ -156,6 +173,10 @@ shinyUI(
           column(2))
       ),
       tabItem("circAut",
+              tags$p("Circunscripción: autonómica"),
+              textOutput("texto_metodo_aut"),
+              textOutput("texto_barrera_aut"),
+              tags$br(),
               fluidRow(
                 column(8, plotlyOutput("cortes_aut"), align =
                          "center"),
@@ -163,12 +184,23 @@ shinyUI(
                          "center")
               )),
       tabItem("circCompAut",
+              tags$p("Circunscripciones provinciales con 13 escaños de compensación"),
+              textOutput("texto_metodo_comp_tot"),
+              textOutput("texto_barrera_prov_comp_tot"),
+              textOutput("texto_barrera_aut_comp_tot"),
+              tags$br(),
               fluidRow(
                 column(8, plotlyOutput("cortes_comp"), align = "center"),
                 column(4, tableOutput("comp_compens"), align = "center")
               )),
       tabItem(
         "circCompProv",
+        tags$p("Circunscripciones provinciales con 13 escaños de compensación"),
+        textOutput("texto_metodo_comp_prov"),
+        textOutput("texto_barrera_prov_comp_prov"),
+        textOutput("texto_barrera_aut_comp_prov"),
+        textOutput("texto_provincia_comp_prov"),
+        tags$br(),
         selectInput("provincia_comp_prov", "Circunscripción:", provincias, selected =
                       "Valladolid"),
         fluidRow(

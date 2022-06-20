@@ -549,7 +549,8 @@ shinyServer(function(input, output) {
     "Valladolid" = grafico_votos(resultados_valladolid(), provincia = T),
     "Zamora" = grafico_votos(resultados_zamora(), provincia = T)
   ))
-
+  
+  output$texto_provincia <- renderText(paste("Provincia:",input$provincia))
   output$mapa_cyl <- renderPlotly(mapa_masvotado(res_partidos()))
   output$tabla_cyl <- renderTable(tabla_informacion(res_totales(), "cyl"))
   
@@ -571,7 +572,11 @@ shinyServer(function(input, output) {
   
   metodo_prov <- reactive(input$metodo_prov)
   barrera_prov <- reactive(input$barrera_prov)
-  #res_partidos <- reactive(resultados_totales(datos()))
+  output$texto_metodo_prov_tot <- renderText(paste("Método de reparto:", metodo_prov()))
+  output$texto_barrera_prov_tot <- renderText(paste("Barrera electoral: ", barrera_prov(), "%", sep=""))
+  output$texto_metodo_prov_prov <- renderText(paste("Método de reparto:", metodo_prov()))
+  output$texto_barrera_prov_prov <- renderText(paste("Barrera electoral: ", barrera_prov(), "%", sep=""))
+  output$texto_provincia_prov_prov <- renderText(paste("Provincia:", input$provincia_prov))
   
   resultados_avila_prov <-
     reactive(resultados_provincia(res_partidos(), "avila", barrera_prov()))
@@ -715,7 +720,8 @@ shinyServer(function(input, output) {
   
   metodo_aut <- reactive(input$metodo_aut)
   barrera_aut <- reactive(input$barrera_aut)
-  #res_partidos <- reactive(resultados_totales(datos()))
+  output$texto_metodo_aut <- renderText(paste("Método de reparto:", metodo_aut()))
+  output$texto_barrera_aut <- renderText(paste("Barrera electoral: ", barrera_aut(), "%", sep=""))
   
   resultados_cyl_aut <- reactive(resultados_provincia(res_partidos(), "cyl", 
                                                       min_threshold = barrera_aut()))
@@ -736,6 +742,14 @@ shinyServer(function(input, output) {
   barrera_comp_prov <- reactive(input$barrera_comp_prov)
   prov_comp <- reactive(input$provincia_comp_prov %>% toupper() %>% gsub('Á', 'A', .) %>% 
                           gsub('Ó', 'O', .))
+  
+  output$texto_metodo_comp_tot <- renderText(paste("Método de reparto:", metodo_comp()))
+  output$texto_barrera_aut_comp_tot <- renderText(paste("Barrera electoral: ", barrera_comp_aut(), "%", sep=""))
+  output$texto_barrera_prov_comp_tot <- renderText(paste("Barrera electoral: ", barrera_comp_prov(), "%", sep=""))
+  output$texto_metodo_comp_prov <- renderText(paste("Método de reparto:", metodo_comp()))
+  output$texto_barrera_aut_comp_prov <- renderText(paste("Barrera electoral: ", barrera_comp_aut(), "%", sep=""))
+  output$texto_barrera_prov_comp_prov <- renderText(paste("Barrera electoral: ", barrera_comp_prov(), "%", sep=""))
+  output$texto_provincia_comp_prov <- renderText(paste("Provincia:", input$provincia_comp))
   
   reparto_compensacion <- reactive(resultados_compensacion(res_partidos(), anio(), 
                                                            barrera_comp_aut(), 
