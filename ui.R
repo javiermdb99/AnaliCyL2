@@ -90,7 +90,49 @@ shinyUI(
     dashboardBody(
       tabItems(
         tabItem(
-        tabName = "inicio"
+        tabName = "inicio",
+        tags$div(
+          style = "width:75%;margin:auto; text-align:center",
+          tags$h2(
+            "Aplicación Shiny para el estudio de diferentes sistemas de reparto \
+                aplicado a las elecciones autonómicas en Castilla y León",
+            style = "text-align:center;"
+          )),
+        tags$h3("En esta aplicación podrás:",),
+        tags$div(
+          tags$h4(icon("history"), "Convocatorias"),
+          tags$br(),
+          tags$p("Visualizar todos los resultados de todas las elecciones autonómicas\
+          en Castilla y León, así como un resumen de los mismos."),
+          tags$h4(icon("divide"), "Sistema de circunscripciones provinciales"),
+          tags$br(),
+          tags$p("Cambiar la barrera electoral y el método de reparto al sistema\
+          actual, el de las circunscripciones provinciales."),
+          tags$h4(icon("compress-alt"), "Sistema de circunscripciones autonómica"),
+          tags$br(),
+          tags$p("Aplicar el sistema de circunscripción única en Castilla y León.\
+          Cada voto valdría lo mismo, también pudiendo cambiar el método y la barrera."),
+          tags$h4(icon("balance-scale"), "Sistema de circunscripciones provinciales\
+          con escaños de compensación"),
+          tags$br(),
+          tags$p("Utilizar las provincias pero añadir unos escaños de compensación\
+          para mayor proporcionalidad. Puedes cambiar las 2 barreras, así como el método."),
+          style="background-color:#a5cfc3;\
+          max-width:75%;\
+          margin:auto;\
+          justify-content: center;\
+          align-items: center;\
+          padding:2%;
+          border-radius:15px 40px 80px",
+        ),
+        tags$footer("Trabajo de Fin de Grado de Javier Martín de Benito",
+                    tags$br(),
+                    tags$p("javmar1999@gmail.com", style='color:grey'),
+                    tags$p("LinkedIn: javiermdb99", style='color:grey'),
+                    style="text-align:right;
+                    padding-top:4%")
+        
+        
       ),
       tabItem(
         "resumen",
@@ -139,8 +181,8 @@ shinyUI(
           ),
           tabPanel(
             "Reparto de escaños",
-            column(7, plotlyOutput("mapa_prov")),
-            column(5, plotlyOutput("procuradores_provin"))
+            column(5, plotlyOutput("mapa_prov")),
+            column(7, plotlyOutput("procuradores_provin"))
           )
           
         )

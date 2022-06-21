@@ -299,7 +299,7 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
 parlamento <-
   function(datos,
            seats_rows = 1,
-           seat_size = 10) {
+           seat_size = 6) {
     parl_data <- parliament_data(
       election_data = datos,
       type = "semicircle",
