@@ -196,7 +196,6 @@ resultados_compensacion <- function(datos, anio, barrera_aut, barrera_prov, meth
       cocientes[max_cociente] <- cocientes[max_cociente]/divisor
     }
   }
-  browser()
   frame_circ <- frame_circ %>% select(1:10, 13) %>% rename(CYL = CYL_final)
   return(frame_circ)
 }

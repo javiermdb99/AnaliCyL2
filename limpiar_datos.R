@@ -80,7 +80,8 @@ read_and_clean <- function(n_datos) {
     file = paste("./resultados_limpios/", n_datos, ".csv", sep=""),
     sep = ";",
     quote = F,
-    dec = ","
+    dec = ",",
+    fileEncoding = "UTF-8"
   )
 }
 

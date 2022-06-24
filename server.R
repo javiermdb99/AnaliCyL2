@@ -13,7 +13,7 @@ escanos <- read.csv("./resultados/escanos.csv", header = T)
 escanos$Provincia <- gsub('Ó', 'O', as.character(escanos$Provincia))
 names(escanos) <- gsub('X', '', as.character(names(escanos)))
 
-colores <- read.csv("colores.csv")
+colores <- read.csv("colores.csv", stringsAsFactors = F)
 Partido <- colores %>% pull(Partido)
 colores$Color[colores$Color==""] <- 1:100
 colores_partidos <- setNames(colores$Color, colores$Partido)
@@ -442,7 +442,8 @@ shinyServer(function(input, output) {
       header = T,
       sep = ";",
       dec = ",",
-      stringsAsFactors = T
+      stringsAsFactors = T,
+      fileEncoding = "UTF-8"
     )
   })
   eleccion_referencia <- reactive(paste("./repartos/", anio(), ".csv", sep = ""))
