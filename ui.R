@@ -127,7 +127,6 @@ shinyUI(
         ),
         tags$footer("Trabajo de Fin de Grado de Javier Martín de Benito",
                     tags$br(),
-                    tags$p("javmar1999@gmail.com", style='color:grey'),
                     tags$p("LinkedIn: javiermdb99", style='color:grey'),
                     style="text-align:right;
                     padding-top:4%")
